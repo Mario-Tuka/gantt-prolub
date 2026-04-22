@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gantt PROLUB 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f0f2f5;min-height:100vh}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-card{background:#fff;border-radius:12px;padding:40px;width:340px;box-shadow:0 2px 12px rgba(0,0,0,0.12);text-align:center}
+.login-logo{width:56px;height:56px;background:#db6017;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;margin-bottom:16px}
+.login-title{font-size:18px;font-weight:700;color:#3c3935;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;margin-bottom:24px}
+.pin-input{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.pin-digit{width:48px;height:56px;border:2px solid #ddd;border-radius:8px;font-size:22px;text-align:center;outline:none;transition:border-color 0.2s}
+.pin-digit:focus{border-color:#db6017}
+.login-btn{width:100%;padding:12px;background:#db6017;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+.login-btn:hover{background:#c0510f}
+.login-error{color:#e74c3c;font-size:13px;margin-top:8px;display:none}
+#app{display:none;min-height:100vh}
+.topbar{background:#3c3935;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.tb-logo{width:36px;height:36px;background:#db6017;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
+.tb-title{color:#fff;font-size:15px;font-weight:700}
+.tb-sub{color:#8899bb;font-size:12px}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-user{color:#b0bdd0;font-size:12px}
+.btn-sm{background:transparent;border:1px solid #3a4a6a;color:#b0bdd0;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+.btn-sm:hover{background:#3a4a6a;color:#fff}
+.btn-orange{background:#db6017;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-orange:hover{background:#c0510f}
+.main{padding:20px 24px;max-width:1400px;margin:0 auto}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #e8eaf0}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-val{font-size:22px;font-weight:700;color:#3c3935}
+.stat-sub{font-size:11px;color:#aaa;margin-top:2px}
+.view-tabs{display:flex;border-bottom:2px solid #e8eaf0;margin-bottom:16px}
+.view-tab{padding:10px 20px;font-size:13px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+.view-tab.active{color:#db6017;border-bottom-color:#db6017;font-weight:600}
+.section-card{background:#fff;border-radius:10px;border:1px solid #e8eaf0;margin-bottom:16px;overflow:hidden}
+.section-header{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;border-bottom:1px solid #f0f2f5}
+.nota-cell{background:#FFF5E6;border-left:4px solid #db6017;font-size:11px;color:#7a3d0a;font-style:italic;padding:10px 16px;border-bottom:1px solid #f0f2f5;line-height:1.5}
+.nota-cell strong{color:#8B1A1A;font-style:normal;font-weight:700}
+.sec-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sec-name{font-size:13px;font-weight:700;color:#3c3935;flex:1}
+.sec-pct{font-size:12px;color:#888;margin-right:8px}
+.tasks-table{width:100%;border-collapse:collapse}
+.tasks-table th{background:#f7f8fa;font-size:11px;color:#888;font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid #e8eaf0;text-transform:uppercase;letter-spacing:0.4px}
+.tasks-table td{padding:9px 12px;border-bottom:1px solid #f0f2f5;font-size:12px;color:#333;vertical-align:middle}
+.tasks-table tr:last-child td{border-bottom:none}
+.tasks-table tr:hover td{background:#fafbfc}
+.tipo-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px}
+.t-hito{background:#fff3cd;color:#b8860b}
+.t-act{background:#e8f4fd;color:#1565c0}
+.t-ent{background:#e8f5e9;color:#2e7d32}
+.prio-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
+.p-u{background:#fde8e8;color:#c0392b}
+.p-a{background:#fde8d8;color:#db6017}
+.p-m{background:#f0f0f0;color:#666}
+.prog-bar{background:#e8eaf0;border-radius:20px;height:8px;width:90px;overflow:hidden;display:inline-block}
+.prog-fill{height:100%;border-radius:20px}
+.edit-btn{background:transparent;border:1px solid #db6017;color:#db6017;padding:3px 9px;border-radius:5px;cursor:pointer;font-size:11px}
+.edit-btn:hover{background:#db6017;color:#fff}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:24px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:700;color:#3c3935;margin-bottom:4px}
+.modal-meta{font-size:11px;color:#888;margin-bottom:16px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:#555;margin-bottom:5px;display:block}
+.form-range{width:100%}
+.form-val{font-size:14px;font-weight:700;color:#db6017;margin-left:8px}
+.form-select{width:100%;padding:7px;border:1px solid #ddd;border-radius:6px;font-size:12px;outline:none}
+.form-textarea{width:100%;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:12px;resize:vertical;min-height:60px;outline:none}
+.form-textarea:focus,.form-select:focus{border-color:#db6017}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.btn-cancel{background:#f0f2f5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px}
+.btn-save{background:#db6017;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.gantt-wrap{overflow-x:auto;background:#fff;border-radius:10px;border:1px solid #e8eaf0;margin-bottom:16px}
+.gantt-header-row{display:flex;background:#f7f8fa;border-bottom:2px solid #e8eaf0;position:sticky;top:0;z-index:2}
+.gh-name{width:280px;flex-shrink:0;padding:8px 12px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase}
+.gh-months{flex:1;display:flex;min-width:600px}
+.month-col{flex:1;padding:8px 4px;font-size:11px;font-weight:700;color:#888;text-align:center;border-left:1px solid #e8eaf0}
+.gantt-sec-row{background:#f7f8fa;display:flex;border-bottom:1px solid #e8eaf0}
+.gantt-sec-label{width:280px;flex-shrink:0;padding:7px 12px;font-size:11px;font-weight:700}
+.gantt-task-row{display:flex;align-items:center;border-bottom:1px solid #f5f5f5;min-height:34px}
+.gantt-task-row:hover{background:#fafbfc}
+.gt-name{width:280px;flex-shrink:0;padding:5px 12px;font-size:11px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gt-bars{flex:1;position:relative;height:34px;min-width:600px}
+.gt-bar-bg{position:absolute;height:12px;top:11px;border-radius:3px}
+.gt-bar-fill{position:absolute;height:12px;top:11px;border-radius:3px}
+.gt-hito{position:absolute;width:12px;height:12px;top:11px;transform:rotate(45deg);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">PL</div>
+    <div class="login-title">PROLUB · Gestión de Proyectos</div>
+    <div class="login-sub">Ingresa tu PIN de acceso</div>
+    <div class="pin-input">
+      <input class="pin-digit" maxlength="1" type="password" id="p0" autocomplete="off">
+      <input class="pin-digit" maxlength="1" type="password" id="p1" autocomplete="off">
+      <input class="pin-digit" maxlength="1" type="password" id="p2" autocomplete="off">
+      <input class="pin-digit" maxlength="1" type="password" id="p3" autocomplete="off">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Acceder</button>
+    <div class="login-error" id="login-err">PIN incorrecto. Intenta de nuevo.</div>
+    <div style="margin-top:20px;font-size:11px;color:#bbb">PROLUB Lubricantes S.A. de C.V. · Confidencial</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="tb-logo">PL</div>
+      <div>
+        <div class="tb-title">PROLUB · Control de Proyectos 2026</div>
+        <div class="tb-sub" id="tb-sub">Contabilidad · ERP Syspric</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <span class="tb-user" id="tb-user"></span>
+      <button class="btn-sm" onclick="doLogout()">Cerrar sesión</button>
+      <button class="btn-orange" onclick="downloadHTML()">⬇ Descargar actualizado</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="view-tabs">
+      <div class="view-tab active" id="tab-lista" onclick="switchView('lista')">Lista de tareas</div>
+      <div class="view-tab" id="tab-gantt" onclick="switchView('gantt')">Vista Gantt</div>
+    </div>
+    <div id="view-lista"></div>
+    <div id="view-gantt" style="display:none"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="m-title"></div>
+    <div class="modal-meta" id="m-meta"></div>
+    <div class="form-group">
+      <label class="form-label">% Avance <span class="form-val" id="m-pv">0%</span></label>
+      <input type="range" min="0" max="100" step="5" class="form-range" id="m-prog" oninput="document.getElementById('m-pv').textContent=this.value+'%'">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select class="form-select" id="m-estado">
+        <option>Según lo previsto</option>
+        <option>Riesgo bajo</option>
+        <option>Riesgo medio</option>
+        <option>Riesgo alto</option>
+        <option>Completado</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observaciones</label>
+      <textarea class="form-textarea" id="m-obs" placeholder="Notas, bloqueos, avances parciales..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveModal()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PINS={
+  '1234':{role:'admin', name:'Mario Jordan', label:'Cost Coach · Maestro'},
+  '5678':{role:'conta', name:'Josué / Cintya', label:'Contabilidad'},
+  '9012':{role:'erp',   name:'Leonardo', label:'ERP Syspric'}
+};
+
+let CU=null, editCtx=null;
+
+const DATA={sections:[
+  {id:'conta',name:'CONTABILIDAD · JOSUÉ Y CINTYA',color:'#db6017',roles:['admin','conta'],tasks:[
+    {id:0, desc:'Recepción y resguardo de archivos del contador anterior (Rogelio)',asign:'Josué',prog:100,start:'2026-04-13',dias:3, tipo:'HITO',      prio:'URGENTE',obs:'',estado:'Completado'},
+    {id:1, desc:'Separación de cuentas — reclasificación ingresos, costos y gastos por naturaleza',asign:'Josué / Cintya',prog:0,start:'2026-04-13',dias:15,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:2, desc:'Cruce XML vs. CFDI timbrados — reporte lunes antes 1:00 pm',asign:'Josué',prog:0,start:'2026-04-13',dias:7, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:3, desc:'Presentación contabilidades electrónicas omitidas: 2024, 2025 y 2026',asign:'Josué / Cintya',prog:0,start:'2026-04-14',dias:30,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:4, desc:'Conciliación brecha $6.6 MDP facturas recibidas (XML vs. ContPaq)',asign:'Josué',prog:0,start:'2026-04-13',dias:20,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:5, desc:'Investigación 258 líneas a $1 peso en Alpha — documentar hallazgos',asign:'Josué',prog:0,start:'2026-04-13',dias:15,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:6, desc:'Revisión folios faltantes y doble utilidad en Alpha — reporte a Mario Jordan',asign:'Josué',prog:0,start:'2026-04-13',dias:15,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:7, desc:'Requerimiento formal escrito a Alpha: specs, configuración y logs de auditoría',asign:'JJ / Mario',prog:0,start:'2026-04-14',dias:5, tipo:'HITO',      prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:8, desc:'Investigación EFOS/EDOS — entrega a perito Ernesto Estrada',asign:'Josué',prog:0,start:'2026-04-13',dias:20,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:9, desc:'Separación nómina fiscal vs. no fiscal — cuadre ISR, IMSS e INFONAVIT',asign:'Cintya',prog:0,start:'2026-04-13',dias:10,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:10,desc:'Cédula MOD semanal — entrega lunes antes 11:00 hrs por centro de costo',asign:'Cintya',prog:0,start:'2026-04-20',dias:7, tipo:'ENTREGABLE',prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:11,desc:'Centros de costo: definición Planta 1, Planta 2 y distribución regional',asign:'Josué / Cintya / Mario',prog:0,start:'2026-04-13',dias:10,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:12,desc:'Separación costos fijos vs. variables — modelo Costo de Absorción PROLUB',asign:'Josué / Cintya',prog:0,start:'2026-04-14',dias:12,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo medio'},
+    {id:13,desc:'HITO: Papel de trabajo GIF — gravados vs. exentos separados por planta',asign:'Cintya',prog:0,start:'2026-04-28',dias:1, tipo:'HITO',      prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:14,desc:'Revisión Activo Fijo — inventario físico en piso vs. libro mayor ambas plantas',asign:'Josué / Cintya',prog:0,start:'2026-04-13',dias:15,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:15,desc:'HITO: Cédula Activo Fijo — tasas contables vs. fiscales LISR Art.34',asign:'Cintya',prog:0,start:'2026-04-28',dias:1, tipo:'HITO',      prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:16,desc:'Factor Depreciación validado con Balanzas ENE-DIC 2025 — entrega al Cost Coach',asign:'Cintya',prog:0,start:'2026-04-30',dias:5, tipo:'ENTREGABLE',prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:17,desc:'Prueba ácida y razón corriente — primer cálculo con datos actuales',asign:'Cintya',prog:0,start:'2026-04-20',dias:5, tipo:'ENTREGABLE',prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:18,desc:'Días recuperación CxC y días de pago CxP — primer reporte',asign:'Cintya',prog:0,start:'2026-04-20',dias:5, tipo:'ENTREGABLE',prio:'URGENTE',obs:'',estado:'Riesgo alto'},
+    {id:19,desc:'Ciclo de conversión de efectivo y capital de trabajo neto',asign:'Cintya',prog:0,start:'2026-04-25',dias:5, tipo:'ENTREGABLE',prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:20,desc:'Estudio de Precios de Transferencia — contratar especialista independiente',asign:'JJ / Mario',prog:0,start:'2026-04-20',dias:30,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:21,desc:'Evaluación 2 facturadores y 1 auxiliar contable — reporte al Cost Coach',asign:'Josué / Cintya',prog:0,start:'2026-04-20',dias:15,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:22,desc:'Regularización de las 3 empresas en cero identificadas',asign:'Josué / Cintya',prog:0,start:'2026-04-20',dias:20,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:23,desc:'Atención contabilidad del Sr. Juan Macías',asign:'Josué / Cintya',prog:0,start:'2026-04-20',dias:30,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:24,desc:'HITO: Presentación 1er mes — resultados a Cost Coach + José Juan',asign:'Josué / Cintya / Mario',prog:0,start:'2026-05-13',dias:1, tipo:'HITO',      prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+  ]},
+  {id:'erp',name:'ERP · SYSPRIC — ING. LEONARDO (17 semanas)',color:'#3c3935',roles:['admin','erp'],tasks:[
+    {id:25,desc:'Análisis y diseño — levantamiento de procesos, definición de alcance',asign:'Leonardo / Mario',prog:0,start:'2026-04-13',dias:14,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:26,desc:'HITO: Documento de alcance firmado — $12,000 no reembolsables',asign:'Leonardo / JJ',prog:0,start:'2026-04-27',dias:1, tipo:'HITO',      prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:27,desc:'Instalación y configuración del sistema — servidor + ambiente productivo',asign:'Leonardo',prog:0,start:'2026-04-27',dias:28,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:28,desc:'Módulo Ventas: clientes, cotizaciones, pedidos, facturación CFDI, crédito',asign:'Leonardo',prog:0,start:'2026-04-27',dias:28,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:29,desc:'Módulo Compras: proveedores, requisiciones, OC, recepción, CxP',asign:'Leonardo',prog:0,start:'2026-04-27',dias:28,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:30,desc:'Módulo Inventarios: existencias, kardex, control de lotes, mínimos/máximos',asign:'Leonardo',prog:0,start:'2026-04-27',dias:28,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:31,desc:'Módulo Desarrollo del Producto: BOM, fichas técnicas, rutas de producción',asign:'Leonardo / Mario',prog:0,start:'2026-05-04',dias:28,tipo:'ACTIVIDAD', prio:'URGENTE',obs:'',estado:'Según lo previsto'},
+    {id:32,desc:'Módulo Producción: órdenes, planeación, explosión de materiales, avance',asign:'Leonardo / Mario',prog:0,start:'2026-05-04',dias:28,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:33,desc:'Módulo Calidad: inspección de entrada, no conformidades, certificados',asign:'Leonardo',prog:0,start:'2026-05-11',dias:21,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:34,desc:'Módulo Logística: rutas, control de transporte, preparación de pedidos',asign:'Leonardo',prog:0,start:'2026-05-11',dias:21,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:35,desc:'Módulo Bancos: cuentas, conciliaciones, ingresos/egresos, CxC/CxP',asign:'Leonardo',prog:0,start:'2026-05-11',dias:21,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:36,desc:'Módulo RRHH: expedientes, vacaciones, altas/bajas, incidencias',asign:'Leonardo',prog:0,start:'2026-05-18',dias:14,tipo:'ACTIVIDAD', prio:'MEDIA',  obs:'',estado:'Según lo previsto'},
+    {id:37,desc:'Módulo Mantenimiento: maquinaria, órdenes preventivo/correctivo',asign:'Leonardo',prog:0,start:'2026-05-18',dias:14,tipo:'ACTIVIDAD', prio:'MEDIA',  obs:'',estado:'Según lo previsto'},
+    {id:38,desc:'Integración contable — pólizas automáticas a ContPaq',asign:'Leonardo / Josué',prog:0,start:'2026-05-18',dias:14,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:39,desc:'Desarrollo específico: app móvil pedidos + integración PLC/Coriolis',asign:'Leonardo',prog:0,start:'2026-04-27',dias:42,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:40,desc:'Migración de datos CSV — máximo 2 iteraciones incluidas',asign:'Leonardo / Josué',prog:0,start:'2026-06-01',dias:14,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:41,desc:'Pruebas integrales por módulo con usuarios finales',asign:'Leonardo / Chavita',prog:0,start:'2026-06-15',dias:28,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:42,desc:'Capacitación por áreas — mandos medios PROLUB',asign:'Leonardo',prog:0,start:'2026-07-13',dias:14,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:43,desc:'HITO: Firma Acta Go-Live — puesta en marcha sistema productivo',asign:'Leonardo / JJ / Mario',prog:0,start:'2026-07-27',dias:1, tipo:'HITO',      prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:44,desc:'Período estabilización 30 días — atención incidencias operativas',asign:'Leonardo',prog:0,start:'2026-07-27',dias:30,tipo:'ACTIVIDAD', prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+    {id:45,desc:'Póliza soporte 40 horas — requerimientos adicionales post go-live',asign:'Leonardo',prog:0,start:'2026-07-27',dias:60,tipo:'ACTIVIDAD', prio:'MEDIA',  obs:'',estado:'Según lo previsto'},
+    {id:46,desc:'HITO: Aceptación final y cierre formal del proyecto Syspric',asign:'Leonardo / JJ / Mario',prog:0,start:'2026-08-26',dias:1, tipo:'HITO',      prio:'ALTA',   obs:'',estado:'Según lo previsto'},
+  ]},
+  {id:'recurrentes',name:'OBLIGACIONES MENSUALES RECURRENTES · CONTABILIDAD',color:'#db6017',roles:['admin','conta'],
+   nota:'ATENCIÓN — Actividades de recurrencia mensual. Cada tarea indica el día fijo en que debe ejecutarse cada mes (no es una tarea única, es un calendario de obligaciones). Las actividades 50, 51 y 52 involucran operaciones con el Sr. Juan Macías (parte relacionada): estas facturas por rentas e intereses forman parte de los hallazgos del dictamen CPC Ernesto Estrada (28/mar/2026) sobre <strong>Precios de Transferencia incumplidos</strong>. Requieren: (1) contratos formalizados de arrendamiento y mutuo con tasa ante fedatario, (2) Estudio de Precios de Transferencia si el total supera $13M/año (Art. 179 LISR), (3) comparable de mercado. NO completar estas tareas mecánicamente sin el respaldo fiscal correspondiente.',
+   tasks:[
+    {id:47,desc:'DÍA 9 DE CADA MES — Emisión para pago 3% sobre Nóminas (Impuesto estatal Jalisco)',asign:'Sandra / Cintya',prog:0,start:'2026-05-09',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · Día 9',estado:'Según lo previsto'},
+    {id:48,desc:'DÍA 10 DE CADA MES — Conciliación entre SUA, IDSE y NOMIPAQ',asign:'Sandra / Cintya',prog:0,start:'2026-05-10',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · Día 10',estado:'Según lo previsto'},
+    {id:49,desc:'DÍA 14 DE CADA MES — Pago del SIPARE (cuotas obrero-patronales IMSS)',asign:'Sandra / Cintya',prog:0,start:'2026-05-14',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · Día 14',estado:'Según lo previsto'},
+    {id:50,desc:'DÍA 14 DE CADA MES — Pago del SAT (ISR, IVA y retenciones federales)',asign:'Sandra / Cintya',prog:0,start:'2026-05-14',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · Día 14',estado:'Según lo previsto'},
+    {id:51,desc:'ÚLTIMO LUNES DEL MES — Pasar cantidad de IVA que va a la fecha del mes en curso',asign:'Sandra / Cintya',prog:0,start:'2026-04-28',dias:1, tipo:'ENTREGABLE',prio:'ALTA',   obs:'RECURRENTE MENSUAL · Último lunes',estado:'Según lo previsto'},
+    {id:52,desc:'⚠ 1er DÍA HÁBIL DE CADA MES — Emitir 2 facturas de Juan Macías a Lubricantes por rentas correspondientes [Parte relacionada · ver nota fiscal de sección]',asign:'Sandra / Cintya',prog:0,start:'2026-05-04',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · 1er día hábil · Precios de Transferencia',estado:'Según lo previsto'},
+    {id:53,desc:'⚠ DÍA 15 DE CADA MES — Emitir factura de Juan Macías a Lubricantes por intereses cobrados [Parte relacionada · ver nota fiscal de sección]',asign:'Sandra / Cintya',prog:0,start:'2026-05-15',dias:1, tipo:'ACTIVIDAD', prio:'URGENTE',obs:'RECURRENTE MENSUAL · Día 15 · Precios de Transferencia',estado:'Según lo previsto'},
+  ]}
+]};
+
+function getPin(){return['p0','p1','p2','p3'].map(i=>document.getElementById(i).value).join('')}
+
+function doLogin(){
+  const u=PINS[getPin()];
+  if(!u){document.getElementById('login-err').style.display='block';['p0','p1','p2','p3'].forEach(i=>document.getElementById(i).value='');document.getElementById('p0').focus();return;}
+  CU={...u};
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('tb-user').textContent=u.name+' · '+u.label;
+  renderAll();
+}
+
+function doLogout(){CU=null;document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';['p0','p1','p2','p3'].forEach(i=>document.getElementById(i).value='');}
+
+function visSecs(){return CU.role==='admin'?DATA.sections:DATA.sections.filter(s=>s.roles.includes(CU.role));}
+function allTasks(){return visSecs().flatMap(s=>s.tasks);}
+function progColor(p){return p===100?'#27ae60':p>=60?'#db6017':p>=30?'#f39c12':'#e74c3c';}
+
+function renderStats(){
+  const t=allTasks(),total=t.length;
+  const comp=t.filter(x=>x.prog===100).length;
+  const hitos=t.filter(x=>x.tipo==='HITO');
+  const hitosOK=hitos.filter(x=>x.prog===100).length;
+  const avg=total?Math.round(t.reduce((s,x)=>s+x.prog,0)/total):0;
+  const urg=t.filter(x=>x.prio==='URGENTE'&&x.prog<100).length;
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Avance general</div><div class="stat-val">${avg}%</div><div class="stat-sub">${comp} de ${total} completadas</div></div>
+    <div class="stat-card"><div class="stat-label">Hitos</div><div class="stat-val">${hitosOK}/${hitos.length}</div><div class="stat-sub">logrados</div></div>
+    <div class="stat-card"><div class="stat-label">Urgentes pendientes</div><div class="stat-val" style="color:#c0392b">${urg}</div><div class="stat-sub">requieren atención inmediata</div></div>
+    <div class="stat-card"><div class="stat-label">Actualizado</div><div class="stat-val" style="font-size:14px">${new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})}</div><div class="stat-sub">última carga</div></div>`;
+}
+
+function renderLista(){
+  let h='';
+  visSecs().forEach(sec=>{
+    const avg=sec.tasks.length?Math.round(sec.tasks.reduce((s,t)=>s+t.prog,0)/sec.tasks.length):0;
+    h+=`<div class="section-card">
+      <div class="section-header">
+        <div class="sec-dot" style="background:${sec.color}"></div>
+        <div class="sec-name">${sec.name}</div>
+        <div class="sec-pct">${avg}% avance</div>
+      </div>`;
+    if(sec.nota){h+=`<div class="nota-cell">⚑ ${sec.nota}</div>`;}
+    h+=`<table class="tasks-table"><thead><tr>
+        <th style="width:32px">#</th><th>Tarea</th><th style="width:130px">Responsable</th>
+        <th style="width:88px">Inicio</th><th style="width:48px">Días</th>
+        <th style="width:72px">Tipo</th><th style="width:72px">Prioridad</th>
+        <th style="width:130px">Avance</th><th style="width:64px"></th>
+      </tr></thead><tbody>`;
+    sec.tasks.forEach(t=>{
+      const tc=t.tipo==='HITO'?'t-hito':t.tipo==='ENTREGABLE'?'t-ent':'t-act';
+      const pc=t.prio==='URGENTE'?'p-u':t.prio==='ALTA'?'p-a':'p-m';
+      const canEdit=CU.role==='admin'||sec.roles.includes(CU.role);
+      h+=`<tr>
+        <td style="color:#aaa;font-size:10px">${t.id}</td>
+        <td><div style="font-size:12px">${t.tipo==='HITO'?'♦ ':''}${t.desc}</div>${t.obs?`<div style="font-size:10px;color:#888;font-style:italic;margin-top:2px">${t.obs}</div>`:''}</td>
+        <td style="font-size:11px;color:#666">${t.asign}</td>
+        <td style="font-size:11px;color:#666">${t.start}</td>
+        <td style="font-size:11px;color:#666;text-align:center">${t.dias}</td>
+        <td><span class="tipo-badge ${tc}">${t.tipo}</span></td>
+        <td><span class="prio-badge ${pc}">${t.prio}</span></td>
+        <td><div style="display:flex;align-items:center;gap:6px"><div class="prog-bar"><div class="prog-fill" style="width:${t.prog}%;background:${progColor(t.prog)}"></div></div><span style="font-size:11px;font-weight:700;color:${progColor(t.prog)}">${t.prog}%</span></div></td>
+        <td>${canEdit?`<button class="edit-btn" onclick="openModal(${t.id},'${sec.id}')">Editar</button>`:''}</td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  });
+  document.getElementById('view-lista').innerHTML=h;
+}
+
+function renderGantt(){
+  const start=new Date('2026-04-13'),totalDays=210;
+  const months=[];
+  for(let i=0;i<7;i++){const d=new Date(start);d.setMonth(d.getMonth()+i);months.push(d.toLocaleDateString('es-MX',{month:'short',year:'2-digit'}).toUpperCase());}
+  function pct(ds,d){return Math.max(0,(new Date(ds)-start)/(1000*60*60*24))/totalDays*100;}
+  let h=`<div class="gantt-wrap"><div style="min-width:900px">
+    <div class="gantt-header-row"><div class="gh-name">Tarea</div><div class="gh-months">`;
+  months.forEach(m=>{h+=`<div class="month-col">${m}</div>`;});
+  h+=`</div></div>`;
+  visSecs().forEach(sec=>{
+    h+=`<div class="gantt-sec-row"><div class="gantt-sec-label" style="color:${sec.color}">${sec.name}</div><div style="flex:1;min-width:600px"></div></div>`;
+    sec.tasks.forEach(t=>{
+      const off=pct(t.start,0);
+      const w=t.dias/totalDays*100;
+      const fw=w*t.prog/100;
+      h+=`<div class="gantt-task-row">
+        <div class="gt-name" title="${t.desc}">${t.tipo==='HITO'?'♦ ':''}<span>${t.desc.substring(0,42)}${t.desc.length>42?'…':''}</span></div>
+        <div class="gt-bars">`;
+      if(t.tipo==='HITO'){
+        h+=`<div class="gt-hito" style="left:calc(${off}% - 6px);background:${sec.color}"></div>`;
+      } else {
+        h+=`<div class="gt-bar-bg" style="left:${off}%;width:${w}%;background:${sec.color}18;border:1px solid ${sec.color}40"></div>`;
+        h+=`<div class="gt-bar-fill" style="left:${off}%;width:${fw}%;background:${progColor(t.prog)}99"></div>`;
+      }
+      h+=`</div></div>`;
+    });
+  });
+  h+=`</div></div>`;
+  document.getElementById('view-gantt').innerHTML=h;
+}
+
+function switchView(v){
+  document.getElementById('view-lista').style.display=v==='lista'?'block':'none';
+  document.getElementById('view-gantt').style.display=v==='gantt'?'block':'none';
+  document.getElementById('tab-lista').className='view-tab'+(v==='lista'?' active':'');
+  document.getElementById('tab-gantt').className='view-tab'+(v==='gantt'?' active':'');
+  if(v==='gantt')renderGantt();
+}
+
+function openModal(tid,sid){
+  const sec=DATA.sections.find(s=>s.id===sid);
+  const t=sec.tasks.find(x=>x.id===tid);
+  editCtx={tid,sid};
+  document.getElementById('m-title').textContent=t.desc;
+  document.getElementById('m-meta').textContent='Responsable: '+t.asign+' · Inicio: '+t.start+' · '+t.dias+' días';
+  document.getElementById('m-prog').value=t.prog;
+  document.getElementById('m-pv').textContent=t.prog+'%';
+  document.getElementById('m-estado').value=t.estado||'Según lo previsto';
+  document.getElementById('m-obs').value=t.obs||'';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');editCtx=null;}
+
+function saveModal(){
+  if(!editCtx)return;
+  const sec=DATA.sections.find(s=>s.id===editCtx.sid);
+  const t=sec.tasks.find(x=>x.id===editCtx.tid);
+  t.prog=parseInt(document.getElementById('m-prog').value);
+  t.estado=document.getElementById('m-estado').value;
+  t.obs=document.getElementById('m-obs').value;
+  if(t.prog===100)t.estado='Completado';
+  closeModal();renderAll();
+}
+
+function renderAll(){renderStats();renderLista();}
+
+function downloadHTML(){
+  const saves=DATA.sections.map(s=>({id:s.id,tasks:s.tasks.map(t=>({id:t.id,prog:t.prog,estado:t.estado,obs:t.obs}))}));
+  let html=document.documentElement.outerHTML;
+  html=html.replace('/*__SAVED__*/','const __SAVED__='+JSON.stringify(saves)+';');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='Gantt_PROLUB_'+new Date().toISOString().slice(0,10)+'.html';
+  a.click();
+}
+
+document.querySelectorAll('.pin-digit').forEach((el,i,arr)=>{
+  el.addEventListener('input',()=>{if(el.value&&i<arr.length-1)arr[i+1].focus();});
+  el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();if(e.key==='Backspace'&&!el.value&&i>0)arr[i-1].focus();});
+});
+</script>
+</body>
+</html>
