@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Gantt PROLUB 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
 body{background:#f0f2f5;min-height:100vh}
@@ -124,8 +125,8 @@ body{background:#f0f2f5;min-height:100vh}
     </div>
     <div class="tb-right">
       <span class="tb-user" id="tb-user"></span>
+      <button class="btn-sm" onclick="refrescarDesdeNube()" title="Refrescar avances desde la nube">🔄 Actualizar</button>
       <button class="btn-sm" onclick="doLogout()">Cerrar sesión</button>
-      <button class="btn-orange" onclick="downloadHTML()">⬇ Descargar actualizado</button>
     </div>
   </div>
   <div class="main">
@@ -169,6 +170,12 @@ body{background:#f0f2f5;min-height:100vh}
 </div>
 
 <script>
+// ============ CONFIGURACIÓN SUPABASE ============
+const SUPA_URL = 'https://xkycyjimbbnmxkfyztze.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhreWN5amltYmJubXhrZnl6dHplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NjU4NjcsImV4cCI6MjA5MjQ0MTg2N30.0G4-5TJoWdi8lo6DmbM7QsC4MKv9YlLgwbOEc04ZeTw';
+const supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+// ================================================
+
 const PINS={
   '1234':{role:'admin', name:'Mario Jordan', label:'Cost Coach · Maestro'},
   '5678':{role:'conta', name:'Josué / Cintya', label:'Contabilidad'},
@@ -244,14 +251,33 @@ const DATA={sections:[
 
 function getPin(){return['p0','p1','p2','p3'].map(i=>document.getElementById(i).value).join('')}
 
-function doLogin(){
+async function doLogin(){
   const u=PINS[getPin()];
   if(!u){document.getElementById('login-err').style.display='block';['p0','p1','p2','p3'].forEach(i=>document.getElementById(i).value='');document.getElementById('p0').focus();return;}
   CU={...u};
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
-  document.getElementById('tb-user').textContent=u.name+' · '+u.label;
+  document.getElementById('tb-user').textContent=u.name+' · '+u.label+' · 🔄 Sincronizando...';
+  await cargarAvancesRemotos();
+  document.getElementById('tb-user').textContent=u.name+' · '+u.label+' · ☁️ En la nube';
   renderAll();
+}
+
+async function cargarAvancesRemotos(){
+  try{
+    const {data,error}=await supa.from('gantt_avances').select('*');
+    if(error){console.error('Error Supabase:',error);return;}
+    if(!data)return;
+    data.forEach(row=>{
+      const sec=DATA.sections.find(s=>s.id===row.seccion_id);
+      if(!sec)return;
+      const t=sec.tasks.find(x=>x.id===row.tarea_id);
+      if(!t)return;
+      t.prog=row.progreso;
+      t.estado=row.estado;
+      t.obs=row.observaciones;
+    });
+  }catch(e){console.error('Error cargando avances:',e);}
 }
 
 function doLogout(){CU=null;document.getElementById('login-screen').style.display='flex';document.getElementById('app').style.display='none';['p0','p1','p2','p3'].forEach(i=>document.getElementById(i).value='');}
@@ -366,7 +392,7 @@ function openModal(tid,sid){
 
 function closeModal(){document.getElementById('modal').classList.remove('open');editCtx=null;}
 
-function saveModal(){
+async function saveModal(){
   if(!editCtx)return;
   const sec=DATA.sections.find(s=>s.id===editCtx.sid);
   const t=sec.tasks.find(x=>x.id===editCtx.tid);
@@ -374,19 +400,46 @@ function saveModal(){
   t.estado=document.getElementById('m-estado').value;
   t.obs=document.getElementById('m-obs').value;
   if(t.prog===100)t.estado='Completado';
+
+  // Guardar en Supabase
+  const btnSave=document.querySelector('.btn-save');
+  const btnTextOriginal=btnSave.textContent;
+  btnSave.textContent='Guardando...';
+  btnSave.disabled=true;
+  try{
+    const {error}=await supa.from('gantt_avances').upsert({
+      tarea_id:t.id,
+      seccion_id:sec.id,
+      progreso:t.prog,
+      estado:t.estado,
+      observaciones:t.obs,
+      modificado_por:CU.name,
+      actualizado_en:new Date().toISOString()
+    },{onConflict:'tarea_id,seccion_id'});
+    if(error){
+      alert('Error al guardar en la nube: '+error.message+'\n\nEl cambio se guardó localmente pero NO se sincronizó. Revisa tu conexión e intenta de nuevo.');
+      btnSave.textContent=btnTextOriginal;
+      btnSave.disabled=false;
+      return;
+    }
+  }catch(e){
+    alert('Error de conexión: '+e.message);
+    btnSave.textContent=btnTextOriginal;
+    btnSave.disabled=false;
+    return;
+  }
+  btnSave.textContent=btnTextOriginal;
+  btnSave.disabled=false;
   closeModal();renderAll();
 }
 
 function renderAll(){renderStats();renderLista();}
 
-function downloadHTML(){
-  const saves=DATA.sections.map(s=>({id:s.id,tasks:s.tasks.map(t=>({id:t.id,prog:t.prog,estado:t.estado,obs:t.obs}))}));
-  let html=document.documentElement.outerHTML;
-  html=html.replace('/*__SAVED__*/','const __SAVED__='+JSON.stringify(saves)+';');
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download='Gantt_PROLUB_'+new Date().toISOString().slice(0,10)+'.html';
-  a.click();
+async function refrescarDesdeNube(){
+  document.getElementById('tb-user').textContent=CU.name+' · '+CU.label+' · 🔄 Sincronizando...';
+  await cargarAvancesRemotos();
+  document.getElementById('tb-user').textContent=CU.name+' · '+CU.label+' · ☁️ En la nube';
+  renderAll();
 }
 
 document.querySelectorAll('.pin-digit').forEach((el,i,arr)=>{
